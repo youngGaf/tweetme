@@ -5,15 +5,13 @@ from .models import Tweet
 
 # Create your views here.
 def home_view(request, *args, **kwargs):
-    print(args,kwargs)
-    return HttpResponse("<h1>Hello World</h1>")
+    return render(request, "pages/home.html", context={}, status=200)
 
 def tweet_detail_view(request, tweet_id, *args, **kwargs):
     """
     REST API VIEW
     
     """
-
     data = {"id": tweet_id, }
     try:
         obj = Tweet.objects.get(id=tweet_id)
