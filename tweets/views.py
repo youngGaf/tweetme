@@ -19,7 +19,7 @@ def tweet_list_view(request, *args, **kwargs):
     returns Json data
     """
     querySet = Tweet.objects.all()
-    tweet_list = [{ "id": tweet.id, "content": tweet.content, "likes": random.randint(0,10)} for tweet in querySet]
+    tweet_list = [ tweet.serialize() for tweet in querySet]
 
     data = {
         "isUser": False,
@@ -31,10 +31,12 @@ def tweet_list_view(request, *args, **kwargs):
 def tweet_create_view(request, *args, **kwargs):
     form = TweetForm(request.POST or None)
     next_url = request.POST.get('next') or None
-    # print(next_url)
     if form.is_valid():
         obj = form.save(commit=False)
         obj.save()
+        if request.is_ajax():
+            return JsonResponse(obj.serialize(), status=201) #created status
+
         if next_url != None and is_safe_url(next_url, ALLOWED_HOSTS):
             return redirect(next_url)
         form = TweetForm()
