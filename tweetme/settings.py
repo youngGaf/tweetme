@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    #third-party
+    'rest_framework',
     #myApps
     'tweets',
 ]
@@ -71,6 +72,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'tweetme.wsgi.application'
+
+LOGIN_URL= '/login'
 
 
 # Database
