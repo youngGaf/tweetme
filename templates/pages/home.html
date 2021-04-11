@@ -71,10 +71,10 @@
                 } else {
                     alert('An error occured. Please try again later');
                 }
-            } else if (xhr.status === 401){
+            } else if (xhr.status === 401 || 403){
                 alert('Please login to tweet');
                 window.location.href = '/login';
-                
+
             } else if (xhr.status === 500){
                 alert('Error on server');
             }
@@ -111,7 +111,8 @@
         xhr.responseType = responseType
         xhr.open(method, url)
         xhr.onload = function () {
-            var { response, status } = xhr.response
+            var response = xhr.response
+            var status = xhr.status
             var listedItem = response
             let finalItem = ''
     

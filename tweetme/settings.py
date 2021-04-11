@@ -25,7 +25,7 @@ SECRET_KEY = '52tuw6vrwji!x!(nsj1z*u(ak2@ia(g)%4(p*w(+^(+i+n%9ek'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -37,8 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     #third-party
     'rest_framework',
+    
     #myApps
     'tweets',
 ]
@@ -73,7 +75,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tweetme.wsgi.application'
 
+# Added variables
 LOGIN_URL= '/login'
+MAX_TWEET_LENGTH = 240
 
 
 # Database
@@ -124,3 +128,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# RestFramework
+
+DEFAULT_RENDERER_CLASSES = [
+    'rest_framework.renderers.JSONRenderer',
+]
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES += [
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES
+}
