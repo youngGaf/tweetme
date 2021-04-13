@@ -78,6 +78,7 @@ WSGI_APPLICATION = 'tweetme.wsgi.application'
 # Added variables
 LOGIN_URL= '/login'
 MAX_TWEET_LENGTH = 240
+TWEET_ACTIONS_OPTIONS = ['like', 'unlike', 'retweet']
 
 
 # Database

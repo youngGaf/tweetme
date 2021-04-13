@@ -23,6 +23,23 @@
  
 
 <script>
+    // CSRF token
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     const handleTweetFormError = (msg, display) => {
         var myErrorDiv = document.getElementById('tweet-create-form-error');
         if (display===true){
@@ -89,16 +106,54 @@
     tweetCreateFormEl.addEventListener('submit', handleTweetCreateSubmit)
     
     
-    const tweetsContainerElement = document.getElementById('tweets')
-    const handleLike = (tweetId, currentCount) =>{
-        console.log(currentCount, tweetId)
+    const tweetsContainerElement = document.getElementById('tweets');
+
+    // Handle like
+    const handleTweetActions = (tweetId, currentCount, action) =>{
+        const csrftoken = getCookie('csrftoken');
+        console.log(currentCount, tweetId, action)
+        const url = 'api/tweets/action'
+        const method = 'POST'
+        const data = JSON.stringify({
+            id: tweetId,
+            action: action
+        });
+        
+        const xhr = new XMLHttpRequest()
+        var responseType = 'json'
+        xhr.responseType = responseType
+        xhr.open(method, url);
+        xhr.setRequestHeader('Content-Type', 'application/json')
+        xhr.setRequestHeader('HTTP_X_REQUEST_HEADER', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-Requested-with', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+        xhr.onload = () => {
+            loadTweet(tweetsContainerElement);
+        }
+        xhr.send(data);
+        return;
     }
+
+    // Like button
     const likeBtn = (tweet) =>{
-        return "<button class='btn btn-primary' onclick=handleLike("+ tweet.id + ","+ tweet.likes + ")>"+ tweet.likes + " " + "Like</button>"
+        return "<button class='btn btn-primary' onclick=handleTweetActions("+ tweet.id + ","+ tweet.likes + ",'like')>"+ tweet.likes + " " + "Like</button>"
     }
+    
+    // unlike button
+    const unlikeBtn = (tweet) =>{
+        return "<button class='btn btn-outline-primary' onclick=handleTweetActions("+ tweet.id + ","+ tweet.likes + ",'unlike')>"+ "Unlike</button>"
+    }
+
+    // Retweet button
+    const retweetBtn = (tweet) =>{
+        return "<button class='btn btn-outline-success' onclick=handleTweetActions("+ tweet.id + ","+ tweet.likes + ",'retweet')>"+ "Retweet</button>"
+    }
+
+    // Format tweet element
     const formatTweetElement = (tweet) => {
         var formatedTweet = "<div class='col-12 col-md-10 mx-auto border rounded py-3 mb-4 tweet' id='tweet-" + tweet.id 
-            + "'><p>" + tweet.content + "</p><div class='btn-group'>" + likeBtn(tweet) + "</div></div>"
+            + "'><p>" + tweet.content + "</p><div class='btn-group'>" + likeBtn(tweet) + unlikeBtn(tweet) + retweetBtn(tweet) + "</div></div>"
         return formatedTweet
     }
 
@@ -115,7 +170,7 @@
             var status = xhr.status
             var listedItem = response
             let finalItem = ''
-    
+
             if (status == 200){
                 for(i=0; i<listedItem.length; i++){
                     var tweetObj = listedItem[i]
