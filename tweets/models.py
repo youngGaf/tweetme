@@ -25,12 +25,10 @@ class Tweet(models.Model):
         verbose_name = 'Tweet'
         verbose_name_plural = 'Tweets'
 
-    # def __str__(self):
-    #     return self.content
+    @property
+    def is_retweet(self):
+        return self.parent is not None
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "content": self.content,
-            "likes": random.randint(0, 10)
-        }
+
+
+

@@ -11,7 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from .forms import TweetForm
 from .models import Tweet
-from .serializers import TweetSerializer, TweetActionSerializer
+from .serializers import (
+    TweetSerializer,
+    TweetActionSerializer,
+    TweetCreateSerializer
+)
 
 ALLOWED_HOSTS = settings.ALLOWED_HOSTS
 
@@ -25,7 +29,7 @@ def home_view(request, *args, **kwargs):
 # @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])  # Set permissions to access API
 def tweet_create_view(request, *args, **kwargs):
-    serializer = TweetSerializer(data=request.POST)
+    serializer = TweetCreateSerializer(data=request.POST)
     if serializer.is_valid(raise_exception=True):
         serializer.save(user=request.user)
         return Response(serializer.data, status=201)
@@ -57,7 +61,7 @@ def tweet_delete_view(request, tweet_id, *args, **kwargs):
         return Response({}, status=404)
     qs = qs.filter(user=request.user)
     if not qs.exists():
-        return Response({'message': 'You cannot delete this tweet'}, status=403)
+        return Response({'message': 'You cannot delete this tweet'}, status=401)
     obj = qs.first()
     obj.delete()
     return Response({'message': 'Tweet successfully removed!'}, status=200)
@@ -74,12 +78,14 @@ def tweet_action_view(request, *args, **kwargs):
     if serializer.is_valid(raise_exception=True):
         data = serializer.validated_data
         tweet_id = data.get('id')
+        action = data.get('action')
+        content = data.get('content')
+
         # check if tweet exists and set as obj
         qs = Tweet.objects.filter(id=tweet_id)
         if not qs.exists():
             return Response({}, status=404)
         obj = qs.first()
-        print(obj.content)
         # carryout specified action 
         if action == 'like':
             obj.likes.add(request.user)
@@ -87,8 +93,11 @@ def tweet_action_view(request, *args, **kwargs):
             return Response(serializer.data, status=200)
         elif action == 'unlike':
             obj.likes.remove(request.user)
+            serializer = TweetSerializer(obj)
+            return Response(serializer.data, status=200)
         elif action == 'retweet':
             new_tweet = Tweet.objects.create(user=request.user, parent=obj, content=content)
+            serializer = TweetSerializer(new_tweet)
             return Response(serializer.data, status=200)
         return Response({}, status=200)
 
@@ -132,8 +141,8 @@ def tweet_create_view_pure_django(request, *args, **kwargs):
             return redirect(next_url)
         form = TweetForm()
 
-    if (form.errors):
-        if (request.is_ajax()):
+    if form.errors:
+        if request.is_ajax():
             return JsonResponse(form.errors, status=400)
     return render(request, 'components/form.html', context={"form": form})
 
